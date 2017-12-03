@@ -1,0 +1,23 @@
+import pandas as pd
+
+tip = pd.read_csv('tip.csv')
+tip['year'] = tip.date.str.slice(0,4).astype('int',copy=False)
+
+tip_small = tip.loc[:,['biz_id','year']]
+
+tip_grouped = tip.groupby(['biz_id','year']).size().reset_index(name='counts')
+
+tip_grouped = tip_grouped.sort_values(by=['biz_id','year'])
+
+run_sum=0
+cur_biz = ''
+tip_grouped['cum_sum']=0
+for i in range(tip_grouped.shape[0]):
+    if tip_grouped.loc[i,'biz_id']==cur_biz:
+        tip_grouped.loc[i, 'cum_sum']= tip_grouped.loc[i-1,'cum_sum'] + tip_grouped.loc[i,'counts']
+    else:
+        cur_biz = tip_grouped.loc[i,'biz_id']
+        tip_grouped.loc[i,'cum_sum'] = tip_grouped.loc[i,'counts']
+    #print(i) #uncomment if you want it to show how many rows it's done with
+
+tip_grouped.to_csv('tip_totals.csv')
